@@ -12,6 +12,9 @@ public class GoldenEagleOptimizer {
     private double[] upperBound;
     private Random random;
 
+    protected long evaluationCounter = 0;
+    public long getEvaluationCount() { return evaluationCounter; }
+
     public GoldenEagleOptimizer(int populationSize, int dimension, int maxIterations,
                                 double[] lowerBound, double[] upperBound) {
         this.populationSize = populationSize;
@@ -65,6 +68,8 @@ public class GoldenEagleOptimizer {
 
                     // Evaluate new position
                     double newFitness = function.evaluate(newPosition);
+                    evaluationCounter++; // Increment the evaluation counter here.
+
 
                     // Update if better
                     if (newFitness < fitness[i]) {
@@ -104,11 +109,6 @@ public class GoldenEagleOptimizer {
             }
         }
         return bestIdx;
-    }
-
-    // Interface for objective function
-    public interface ObjectiveFunction {
-        double evaluate(double[] solution);
     }
 
 }

@@ -12,6 +12,9 @@ public class SalpSwarmOptimizer {
     private double[] upperBound;
     private Random random;
 
+    protected long evaluationCounter = 0;
+    public long getEvaluationCount() { return evaluationCounter; }
+
     public SalpSwarmOptimizer(int populationSize, int dimension, int maxIterations,
                               double[] lowerBound, double[] upperBound) {
         this.populationSize = populationSize;
@@ -128,8 +131,4 @@ public class SalpSwarmOptimizer {
         }
     }
 
-    // Interface for objective function
-    public interface ObjectiveFunction {
-        double evaluate(double[] solution);
-    }
 }
