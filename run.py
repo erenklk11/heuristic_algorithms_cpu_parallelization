@@ -1,11 +1,12 @@
-import csv
 import numpy as np
 import os  # For getting process ID
+import time  # To track execution time
 from concurrent.futures import ProcessPoolExecutor
 from SSA import SSA
 from MFO import MFO
 from GEA import GEA
 from functions import selectFunction
+import csv
 
 # Benchmark function indices and algorithms
 benchmark_functions = [0, 1, 2, 4, 7, 8, 9, 10, 13]  # Indices of functions in `selectFunction`
@@ -56,6 +57,8 @@ def run_algorithm(algorithm_name, algorithm, objf_index):
 
 # Run all algorithms on all benchmark functions in parallel
 def main():
+    start_time = time.time()  # Start time
+    
     tasks = []
     with ProcessPoolExecutor() as executor:
         for objf_index in benchmark_functions:
@@ -65,28 +68,27 @@ def main():
         # Gather results
         results = [task.result() for task in tasks]
 
-    # Write results to CSV
-    csv_filename = "optimization_results.csv"
-    with open(csv_filename, mode='w', newline='') as file:
-        writer = csv.writer(file)
-        # Write header
-        writer.writerow(["Algorithm", "Benchmark", "Best Fitness", "Process ID", "Error"])
-        # Write rows
-        for result in results:
-            if "error" in result:
-                writer.writerow([result['algorithm'], result['benchmark'], None, result['pid'], None, result['error']])
-                print(
-                    f"Error in {result['algorithm']} on {result['benchmark']} "
-                    f"by Process {result['pid']}: {result['error']}"
-                )
-            else:
-                writer.writerow([result['algorithm'], result['benchmark'], result['best_fitness'], result['pid'], None])
-                print(
-                    f"{result['algorithm']} on {result['benchmark']} by Process {result['pid']}: "
-                    f"Best Fitness = {result['best_fitness']}"
-                )
+    # Print results
+    for result in results:
+        if "error" in result:
+            print(
+                f"Error in {result['algorithm']} on {result['benchmark']} "
+                f"by Process {result['pid']}: {result['error']}"
+            )
+        else:
+            print(
+                f"{result['algorithm']} on {result['benchmark']} by Process {result['pid']}: "
+                f"Best Fitness = {result['best_fitness']}"
+            )
 
-    print(f"Results have been written to {csv_filename}")
+    # Calculate total time taken
+    total_time = time.time() - start_time
+    print(f"Total execution time: {total_time:.2f} seconds")
+
+    # Add the total time to the CSV file
+    with open('optimization_results.csv', mode='a', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerow(['Total Time', f'{total_time:.2f} seconds'])
 
 if __name__ == "__main__":
     main()
