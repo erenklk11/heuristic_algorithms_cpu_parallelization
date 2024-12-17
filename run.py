@@ -93,7 +93,7 @@ def main():
                 )
             else:
                 writer.writerow(
-                    [result["algorithm"], result["benchmark"], result["best_fitness"], result["execution_time"], result["pid"]]
+                    [result["algorithm"], result["benchmark"], result["best_fitness"], result["pid"]]
                 )
 
     # Calculate and print total time
@@ -109,7 +109,7 @@ def main():
     # Count and display unique processes
         unique_pid_count = len(set(unique_pids))
         writer.writerow(["Number of CPU Processes Used: ", unique_pid_count])
-    print(f"\nNumber of CPU cores used: {unique_pid_count}")
+    print(f"\nNumber of CPU cores used: {unique_pid_count}\n")
 
 
 if __name__ == "__main__":
