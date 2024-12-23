@@ -9,7 +9,7 @@ from GEA import GEA
 from functions import selectFunction
 
 # Benchmark function indices and algorithms
-benchmark_functions = [0, 1, 2, 4, 7, 8, 9, 10, 13]  # Indices of functions in `selectFunction`
+benchmark_functions = [0, 1, 2, 4, 7, 8, 9, 10, 13]  # Indices of functions in selectFunction
 algorithms = {
     "SSA": SSA,
     "MFO": MFO,
@@ -20,12 +20,15 @@ algorithms = {
 lb = -100         # Lower bound of search space
 ub = 100          # Upper bound of search space
 dim = 30          # Dimensionality of the problem
-N = 50            # Population size
+N = 5000          # Population size
 Max_iteration = 1000  # Maximum number of iterations
 
 # Wrapper function to run a single algorithm on a single benchmark function
 def run_algorithm(algorithm_name, algorithm, objf_index, unique_pids):
     try:
+        # Start timing for this specific task
+        start_time = time.time()
+
         # Select the objective function
         objf = selectFunction(objf_index)
 
@@ -39,15 +42,19 @@ def run_algorithm(algorithm_name, algorithm, objf_index, unique_pids):
             Max_iteration=Max_iteration,
         )
 
+        # End timing for this specific task
+        end_time = time.time()
+        task_time = end_time - start_time
+
         # Add the current process ID to the unique list
         unique_pids.append(os.getpid())
 
-        # Return results along with process ID
+        # Return results along with process ID and task time
         return {
             "algorithm": algorithm_name,
             "benchmark": objf.__name__,
             "best_fitness": result.convergence[-1],
-            "execution_time": result.executionTime,
+            "execution_time": task_time,
             "pid": os.getpid(),  # Process ID
         }
     except Exception as e:
@@ -56,7 +63,7 @@ def run_algorithm(algorithm_name, algorithm, objf_index, unique_pids):
             "algorithm": algorithm_name,
             "benchmark": selectFunction(objf_index).__name__,
             "error": str(e),
-            "execution_time": 0,
+            "execution_time": None,
             "pid": os.getpid(),  # Process ID
         }
 
@@ -80,7 +87,7 @@ def main():
         results = [task.result() for task in tasks]
 
     # Define CSV file name
-    csv_file = "optimization_results.csv"
+    csv_file = "optimization_results_parallel.csv"
 
     # Write results to the CSV
     with open(csv_file, mode="w", newline="") as file:
@@ -93,7 +100,7 @@ def main():
                 )
             else:
                 writer.writerow(
-                    [result["algorithm"], result["benchmark"], result["best_fitness"], result["pid"]]
+                    [result["algorithm"], result["benchmark"], result["best_fitness"], f"{result['execution_time']:.2f}", result["pid"]]
                 )
 
     # Calculate and print total time
@@ -101,14 +108,13 @@ def main():
     total_time = end_time - start_time
     print(f"\nTotal Program Execution Time: {total_time:.2f} seconds")
 
-    # Overwrite the last row in the CSV with the total time
+    # Append the total time and number of processes to the CSV
     with open(csv_file, mode="a", newline="") as file:
         writer = csv.writer(file)
-        writer.writerow(["Total Time (s): ", f"{total_time:.2f}"])
-
-    # Count and display unique processes
+        writer.writerow(["\nTotal Time (s): ", f"{total_time:.2f}"])
         unique_pid_count = len(set(unique_pids))
-        writer.writerow(["Number of CPU Processes Used: ", unique_pid_count])
+        writer.writerow(["\nNumber of CPU Processes Used: ", unique_pid_count])
+
     print(f"\nNumber of CPU cores used: {unique_pid_count}\n")
 
 

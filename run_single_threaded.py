@@ -24,6 +24,8 @@ Max_iteration = 1000  # Maximum number of iterations
 # Wrapper function to run a single algorithm on a single benchmark function
 def run_algorithm(algorithm_name, algorithm, objf_index):
     try:
+        start_time = time.time()
+
         # Select the objective function
         objf = selectFunction(objf_index)
 
@@ -37,12 +39,16 @@ def run_algorithm(algorithm_name, algorithm, objf_index):
             Max_iteration=Max_iteration,
         )
 
+
+        end_time = time.time()
+        task_time = end_time - start_time
+
         # Return results along with process ID
         return {
             "algorithm": algorithm_name,
             "benchmark": objf.__name__,
             "best_fitness": result.convergence[-1],
-            "execution_time": result.executionTime,
+            "execution_time": task_time,
             "pid": os.getpid(),  # Process ID
         }
     except Exception as e:
@@ -50,7 +56,7 @@ def run_algorithm(algorithm_name, algorithm, objf_index):
             "algorithm": algorithm_name,
             "benchmark": selectFunction(objf_index).__name__,
             "error": str(e),
-            "execution_time": 0,
+            "execution_time": task_time,
             "pid": os.getpid(),  # Process ID
         }
 
@@ -73,7 +79,7 @@ def main():
             unique_pids.append(result["pid"])
 
     # Define CSV file name
-    csv_file = "optimization_results.csv"
+    csv_file = "optimization_results_single.csv"
 
     # Write results to the CSV
     with open(csv_file, mode="w", newline="") as file:
@@ -86,7 +92,7 @@ def main():
                 )
             else:
                 writer.writerow(
-                    [result["algorithm"], result["benchmark"], result["best_fitness"], result["execution_time"], result["pid"]]
+                    [result["algorithm"], result["benchmark"], result["best_fitness"], f"{result['execution_time']:.2f}", result["pid"]]
                 )
 
     # Calculate and print total time
@@ -97,14 +103,14 @@ def main():
     # Append total time and number of CPU cores to the CSV
     with open(csv_file, mode="a", newline="") as file:
         writer = csv.writer(file)
-        writer.writerow(["Total Time (s):", f"{total_time:.2f}"])
+        writer.writerow(["\nTotal Time (s): ", f"{total_time:.2f}"])
 
         # Count and write the number of CPU processes used
         unique_pid_count = len(set(unique_pids))
-        writer.writerow(["Number of CPU Processes Used:", unique_pid_count])
+        writer.writerow(["\nNumber of CPU Processes Used: ", unique_pid_count])
 
     # Display the number of unique processes in the console
-    print(f"\nNumber of CPU processes used: {unique_pid_count}")
+    print(f"\nNumber of CPU cores used: {unique_pid_count}")
 
 
 if __name__ == "__main__":
